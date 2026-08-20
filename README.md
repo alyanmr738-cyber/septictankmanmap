@@ -36,6 +36,7 @@ npm run dev
 Open:
 
 - Public map: [http://localhost:3000/map](http://localhost:3000/map)
+- Embed preview (720×720): [http://localhost:3000/map/embed-preview](http://localhost:3000/map/embed-preview)
 - Admin: [http://localhost:3000/admin](http://localhost:3000/admin)
 - Public API: [http://localhost:3000/api/map](http://localhost:3000/api/map)
 

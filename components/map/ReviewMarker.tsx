@@ -27,7 +27,7 @@ export function ReviewMarker({
       title={`${location.city}, ${location.state} review from ${location.reviewer}`}
       keyboard
     >
-      <Popup className="stm-popup-wrap" minWidth={260} maxWidth={300}>
+      <Popup className="stm-popup-wrap" minWidth={240} maxWidth={300}>
         <ReviewPopup location={location} previewMode={previewMode} />
       </Popup>
     </Marker>

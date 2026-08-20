@@ -28,6 +28,10 @@ function createClusterIcon(cluster: { getChildCount: () => number }) {
   });
 }
 
+const INITIAL_FIT_PADDING: L.PointExpression = [40, 32];
+const INITIAL_FIT_MIN_ZOOM = 11;
+const INITIAL_FIT_MAX_ZOOM = 13;
+
 function FitLocations({ locations }: { locations: PublicReviewLocation[] }) {
   const map = useMap();
 
@@ -36,13 +40,29 @@ function FitLocations({ locations }: { locations: PublicReviewLocation[] }) {
       map.setView(SWFL_CENTER, SWFL_DEFAULT_ZOOM);
       return;
     }
+
     const bounds = L.latLngBounds(locations.map((location) => [location.lat, location.lng]));
-    map.fitBounds(bounds.pad(0.1), {
-      maxZoom: 12,
-      animate: false,
-      paddingTopLeft: [12, 88],
-      paddingBottomRight: [12, 36],
-    });
+
+    const fit = () => {
+      map.invalidateSize({ animate: false });
+      map.fitBounds(bounds, {
+        padding: INITIAL_FIT_PADDING,
+        maxZoom: INITIAL_FIT_MAX_ZOOM,
+        animate: false,
+      });
+
+      if (map.getZoom() < INITIAL_FIT_MIN_ZOOM) {
+        map.setView(bounds.getCenter(), INITIAL_FIT_MIN_ZOOM, { animate: false });
+      }
+    };
+
+    fit();
+
+    const container = map.getContainer();
+    const observer = new ResizeObserver(() => fit());
+    observer.observe(container);
+
+    return () => observer.disconnect();
   }, [locations, map]);
 
   return null;

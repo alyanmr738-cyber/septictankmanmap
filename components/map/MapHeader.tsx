@@ -17,7 +17,7 @@ function reviewMeta(reviewCount: number, averageRating: number | null): string {
     const formatted = Number.isInteger(averageRating)
       ? averageRating.toFixed(0)
       : averageRating.toFixed(1);
-    return `${starLine} ${formatted} • ${reviewCount.toLocaleString()} Google Reviews`;
+    return `${starLine} ${formatted} · ${reviewCount.toLocaleString()} Google Reviews`;
   }
   return `${starLine} ${reviewCount.toLocaleString()} Review${reviewCount === 1 ? "" : "s"}`;
 }
@@ -39,6 +39,7 @@ export function MapHeader({ reviewCount, averageRating, previewMode }: MapHeader
     <div className="stm-map-overlay">
       <div className="stm-map-overlay-card stm-map-overlay-card--compact">
         <h1>Trusted Across Southwest Florida</h1>
+        <p className="stm-map-sub stm-map-sub--production">Real Customers. Real Reviews.</p>
         <p className="stm-map-meta stm-map-meta--compact" aria-label={`${reviewCount} reviews`}>
           {reviewMeta(reviewCount, averageRating)}
         </p>
