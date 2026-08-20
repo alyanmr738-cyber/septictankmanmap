@@ -82,7 +82,14 @@ After deploy, confirm:
 - `https://your-app.vercel.app/api/map` returns only public fields
 - `https://your-app.vercel.app/admin` requires a password
 
-Vercel Cron is configured in `vercel.json` to call `/api/sync/reviews` every six hours. Vercel sends `Authorization: Bearer $CRON_SECRET`. Leave Google/GHL unset until those integrations are approved; the map does not wait on sync.
+Vercel Cron is configured in `vercel.json` to call `/api/sync/reviews` once per day at 09:00 UTC. Vercel sends `Authorization: Bearer $CRON_SECRET`. Leave Google/GHL unset until those integrations are approved; the map does not wait on sync.
+
+**Hobby plan note:** Vercel Hobby only allows cron jobs that run **once per day**. More frequent schedules (for example every six hours) will fail deployment. Upgrade to [Pro](https://vercel.com/docs/cron-jobs/usage-and-pricing) for sub-daily sync, or trigger sync manually:
+
+```bash
+curl -X POST https://YOUR-APP.vercel.app/api/sync/reviews \
+  -H "Authorization: Bearer YOUR_CRON_SECRET"
+```
 
 ## WordPress / Elementor integration
 
