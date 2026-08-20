@@ -11,7 +11,10 @@
     "db:apply": "tsx scripts/apply-schema.ts",
     "db:test-persistence": "tsx scripts/test-db-persistence.ts",
     "ghl:diagnostic": "tsx scripts/ghl-diagnostic.ts",
-    "seed:first-pin": "tsx scripts/seed-first-real-pin.ts"
+    "ghl:data-quality": "tsx scripts/ghl-data-quality.ts",
+    "seed:first-pin": "tsx scripts/seed-first-real-pin.ts",
+    "import:phase1": "tsx scripts/import-phase1-batch.ts",
+    "rematch:unmatched": "tsx scripts/rematch-unmatched.ts"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

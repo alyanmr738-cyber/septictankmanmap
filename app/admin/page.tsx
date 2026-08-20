@@ -24,6 +24,9 @@ export default async function AdminPage({
           <h1>Review Map Admin</h1>
         </div>
         <div className="stm-admin-actions">
+          <Link className="stm-btn" href="/admin/reviews/import-csv">
+            Batch CSV import
+          </Link>
           <Link className="stm-btn stm-btn-primary" href="/admin/reviews/new">
             Import real Google review
           </Link>

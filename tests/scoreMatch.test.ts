@@ -45,6 +45,33 @@ describe("scoreMatch", () => {
     });
 
     assert.ok(result.score < 70);
+    assert.ok(result.reasons.some((reason) => reason.code === "first_name_only"));
+  });
+
+  it("scores first name and last initial below exact full name but above first name only", () => {
+    const exact = scoreMatch({
+      googleDisplayName: "John Smith",
+      candidateName: "John Smith",
+      candidateCountWithSameName: 1,
+      hasValidAddress: true,
+    });
+    const firstInitial = scoreMatch({
+      googleDisplayName: "Timothy H.",
+      candidateName: "Timothy Harrison",
+      candidateCountWithSameName: 1,
+      candidateCountWithSameAbbreviatedPattern: 1,
+      hasValidAddress: true,
+    });
+    const firstOnly = scoreMatch({
+      googleDisplayName: "David",
+      candidateName: "David Nguyen",
+      candidateCountWithSameName: 8,
+      hasValidAddress: true,
+    });
+
+    assert.ok(exact.score > firstInitial.score);
+    assert.ok(firstInitial.score > firstOnly.score);
+    assert.ok(firstInitial.reasons.some((reason) => reason.code === "first_initial_name"));
   });
 });
 
@@ -66,7 +93,7 @@ describe("findCandidates", () => {
     assert.equal(result.candidates.length, 3);
   });
 
-  it("leaves a first-name-only reviewer unmatched", () => {
+  it("leaves a first-name-only reviewer in needs_review when weak candidates exist", () => {
     const result = findCandidates({
       review: { reviewerDisplayName: "David", createTime: "2026-08-09T13:22:00.000Z" },
       contacts: [
@@ -75,6 +102,46 @@ describe("findCandidates", () => {
       ],
     });
 
-    assert.equal(result.status, "unmatched");
+    assert.equal(result.status, "needs_review");
+    assert.ok((result.bestScore ?? 0) < 70);
+  });
+
+  it("routes ambiguous first-name-and-initial matches to needs_review", () => {
+    const result = findCandidates({
+      review: {
+        reviewerDisplayName: "Timothy H.",
+        createTime: "2026-08-11T16:04:00.000Z",
+      },
+      contacts: [
+        { id: "1", firstName: "Timothy", lastName: "Harris", name: "Timothy Harris", city: "Sarasota", address1: "x" },
+        { id: "2", firstName: "Timothy", lastName: "Hill", name: "Timothy Hill", city: "Venice", address1: "x" },
+        { id: "3", firstName: "Timothy", lastName: "Hernandez", name: "Timothy Hernandez", city: "Bradenton", address1: "x" },
+      ],
+    });
+
+    assert.equal(result.status, "needs_review");
+    assert.equal(result.candidates.length, 3);
+  });
+
+  it("matches a unique first-name-and-initial reviewer", () => {
+    const result = findCandidates({
+      review: {
+        reviewerDisplayName: "Timothy H.",
+        createTime: "2026-08-11T16:04:00.000Z",
+      },
+      contacts: [
+        { id: "1", firstName: "Timothy", lastName: "Harrison", name: "Timothy Harrison", city: "Sarasota", address1: "x" },
+        { id: "2", firstName: "Tom", lastName: "Hardy", name: "Tom Hardy", city: "Venice", address1: "x" },
+      ],
+      signalsByContactId: {
+        "1": {
+          reviewRequestAt: "2026-08-10T12:00:00.000Z",
+        },
+      },
+    });
+
+    assert.equal(result.status, "matched");
+    assert.equal(result.candidates[0]?.displayName, "Timothy Harrison");
+    assert.ok((result.bestScore ?? 0) >= 90);
   });
 });

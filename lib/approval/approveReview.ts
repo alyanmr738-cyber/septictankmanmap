@@ -136,7 +136,7 @@ export async function assignMatch(reviewId: string, ghlContactId: string) {
   await upsertReview({
     ...review,
     ghlContactId,
-    matchStatus: "matched",
+    matchStatus: "needs_review",
     matchConfidence: selected?.score ?? review.matchConfidence,
     matchMetadata: {
       ...(review.matchMetadata ?? {}),

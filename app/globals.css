@@ -511,6 +511,48 @@ input:focus-visible {
   font-size: 0.86rem;
 }
 
+.stm-batch-summary {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--stm-line);
+}
+
+.stm-batch-summary h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.stm-batch-table-wrap {
+  overflow-x: auto;
+  margin-top: 12px;
+}
+
+.stm-batch-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.stm-batch-table th,
+.stm-batch-table td {
+  border: 1px solid var(--stm-line);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.stm-batch-table th {
+  background: var(--stm-bg);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stm-batch-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
 .stm-review-card {
   background: #fff;
   border: 1px solid var(--stm-line);

@@ -24,12 +24,13 @@ function starLabel(rating: number): string {
 export function ReviewCard({ review }: { review: AdminReviewCard }) {
   const router = useRouter();
   const [selectedId, setSelectedId] = useState(review.selectedCandidateId);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(review.reviewerDisplayName);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [revealedAddress, setRevealedAddress] = useState<string | null>(null);
   const [privacyPreview, setPrivacyPreview] = useState<string | null>(null);
   const [candidates, setCandidates] = useState(review.candidates);
+  const [diagnostics, setDiagnostics] = useState(review.matchMetadata?.discoveryDiagnostics ?? null);
 
   const selected = useMemo(
     () => candidates.find((candidate) => candidate.ghlContactId === selectedId) ?? candidates[0] ?? null,
@@ -41,13 +42,20 @@ export function ReviewCard({ review }: { review: AdminReviewCard }) {
     setError(null);
     try {
       const response = await fn();
-      const data = (await response.json()) as { error?: string; candidates?: typeof candidates };
+      const data = (await response.json()) as {
+        error?: string;
+        candidates?: typeof candidates;
+        diagnostics?: NonNullable<typeof diagnostics>;
+      };
       if (!response.ok) {
         setError(data.error ?? "Something went wrong.");
         return;
       }
       if (data.candidates) {
         setCandidates(data.candidates);
+      }
+      if (data.diagnostics) {
+        setDiagnostics(data.diagnostics);
       }
       router.refresh();
     } catch {
@@ -94,42 +102,84 @@ export function ReviewCard({ review }: { review: AdminReviewCard }) {
           </ul>
         </section>
       ) : (
-        <p className="stm-admin-copy">No automatic match. Search GoHighLevel or ignore this review.</p>
+        <section className="stm-match-panel">
+          <h3>No automatic match</h3>
+          {diagnostics?.messages?.length ? (
+            <ul className="stm-reason-list">
+              {diagnostics.messages.map((message) => (
+                <li key={message}>{message}</li>
+              ))}
+            </ul>
+          ) : (
+            <p className="stm-admin-copy">
+              Search GoHighLevel manually below, or re-run discovery after CRM names are cleaned up.
+            </p>
+          )}
+          {review.matchStatus === "unmatched" ? (
+            <button
+              type="button"
+              className="stm-btn"
+              disabled={busy !== null}
+              onClick={() =>
+                run("rematch", async () => {
+                  const response = await fetch(`/api/admin/reviews/${review.id}/rematch`, {
+                    method: "POST",
+                  });
+                  const data = (await response.json()) as {
+                    error?: string;
+                    candidates?: typeof candidates;
+                    diagnostics?: NonNullable<typeof diagnostics>;
+                  };
+                  if (response.ok) {
+                    if (data.candidates) setCandidates(data.candidates);
+                    if (data.diagnostics) setDiagnostics(data.diagnostics);
+                  }
+                  return response;
+                })
+              }
+            >
+              {busy === "rematch" ? "Re-running discovery..." : "Re-run GHL discovery"}
+            </button>
+          ) : null}
+        </section>
       )}
 
       {review.matchStatus !== "approved" ? (
-        <CandidateList
-          candidates={candidates}
-          selectedId={selectedId}
-          name={`match-${review.id}`}
-          onChange={setSelectedId}
-        />
-      ) : null}
+        <>
+          <form
+            className="stm-search-row"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void run("search", () =>
+                fetch(`/api/admin/reviews/${review.id}/search`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ query }),
+                }),
+              );
+            }}
+          >
+            <label htmlFor={`search-${review.id}`}>Search GHL manually</label>
+            <input
+              id={`search-${review.id}`}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={review.reviewerDisplayName}
+            />
+            <button type="submit" className="stm-btn stm-btn-primary" disabled={busy !== null}>
+              {busy === "search" ? "Searching..." : "Search"}
+            </button>
+          </form>
 
-      <form
-        className="stm-search-row"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void run("search", () =>
-            fetch(`/api/admin/reviews/${review.id}/search`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ query }),
-            }),
-          );
-        }}
-      >
-        <label htmlFor={`search-${review.id}`}>Search GHL</label>
-        <input
-          id={`search-${review.id}`}
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Customer name"
-        />
-        <button type="submit" disabled={busy !== null}>
-          Search
-        </button>
-      </form>
+          <CandidateList
+            candidates={candidates}
+            selectedId={selectedId}
+            name={`match-${review.id}`}
+            onChange={setSelectedId}
+            legend={candidates.length > 0 ? "Results" : "Choose customer"}
+          />
+        </>
+      ) : null}
 
       <div className="stm-actions">
         <button
@@ -150,7 +200,7 @@ export function ReviewCard({ review }: { review: AdminReviewCard }) {
         </button>
         <button
           type="button"
-          className="stm-btn"
+          className="stm-btn stm-btn-primary"
           disabled={busy !== null || !selectedId}
           onClick={() =>
             run("match", () =>
@@ -162,7 +212,7 @@ export function ReviewCard({ review }: { review: AdminReviewCard }) {
             )
           }
         >
-          Confirm Match
+          {busy === "match" ? "Linking..." : "Link customer"}
         </button>
         <button
           type="button"

@@ -1,6 +1,6 @@
 import type { FindCandidatesResult } from "@/lib/matching/findCandidates";
 import { findCandidates } from "@/lib/matching/findCandidates";
-import { searchContacts } from "@/lib/integrations/ghl/searchContacts";
+import { discoverContacts } from "@/lib/integrations/ghl/discoverContacts";
 import { getCustomerActivitySignals } from "@/lib/integrations/ghl/activitySignals";
 import type { GoogleReview, MatchStatus } from "@/lib/types";
 
@@ -17,15 +17,21 @@ export function resolveImportedReviewStatus(
 }
 
 export async function runReviewMatching(review: Pick<GoogleReview, "reviewerDisplayName" | "createTime">) {
-  const contacts = await searchContacts(review.reviewerDisplayName);
+  const discovery = await discoverContacts(review.reviewerDisplayName);
   const signalsByContactId: Record<string, Awaited<ReturnType<typeof getCustomerActivitySignals>>> = {};
-  for (const contact of contacts) {
+  for (const contact of discovery.contacts) {
     signalsByContactId[contact.id] = await getCustomerActivitySignals(contact.id);
   }
 
-  return findCandidates({
+  const match = findCandidates({
     review,
-    contacts,
+    contacts: discovery.contacts,
     signalsByContactId,
+    discovery: {
+      strategiesAttempted: discovery.strategiesAttempted,
+      messages: discovery.messages,
+    },
   });
+
+  return match;
 }

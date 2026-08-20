@@ -7,6 +7,7 @@ type CandidateListProps = {
   selectedId: string | null;
   name: string;
   onChange: (ghlContactId: string) => void;
+  legend?: string;
 };
 
 function formatDate(value?: string | null): string {
@@ -16,16 +17,33 @@ function formatDate(value?: string | null): string {
   return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 }
 
-export function CandidateList({ candidates, selectedId, name, onChange }: CandidateListProps) {
+function primaryReason(candidate: MatchCandidate): string | null {
+  const preferred = candidate.reasons.find(
+    (reason) =>
+      reason.points > 0 &&
+      reason.code !== "valid_address" &&
+      reason.code !== "identity_source",
+  );
+  return preferred?.label ?? null;
+}
+
+export function CandidateList({
+  candidates,
+  selectedId,
+  name,
+  onChange,
+  legend = "Choose customer",
+}: CandidateListProps) {
   if (candidates.length === 0) {
     return <p className="stm-admin-copy">No customer candidates were found.</p>;
   }
 
   return (
     <fieldset className="stm-candidate-list">
-      <legend>Choose Customer</legend>
+      <legend>{legend}</legend>
       {candidates.map((candidate) => {
         const place = [candidate.city, candidate.state].filter(Boolean).join(", ");
+        const reason = primaryReason(candidate);
         return (
           <label key={candidate.ghlContactId} className="stm-candidate">
             <input
@@ -41,9 +59,11 @@ export function CandidateList({ candidates, selectedId, name, onChange }: Candid
                 {place ? ` — ${place}` : ""}
               </strong>
               <small>
-                {candidate.score}% match
+                {candidate.score}% confidence
+                {candidate.confidence === "low" ? " (low)" : ""}
                 {candidate.hasAddress ? " · Address on file" : " · No address"}
               </small>
+              {reason ? <small>{reason}</small> : null}
               <small>Last activity: {formatDate(candidate.lastCustomerActivity ?? candidate.serviceCompletedAt)}</small>
             </span>
           </label>

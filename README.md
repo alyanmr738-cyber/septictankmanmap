@@ -85,6 +85,26 @@ Use `/admin` → **Import Real Google Review** to enter one verified Google revi
 
 The import form accepts reviewer name, rating, text, date, and optional Google review ID. It can remove pipeline placeholder records for the same reviewer automatically.
 
+For the first production batch, use `/admin/reviews/import-csv` with a CSV export:
+
+```csv
+reviewer_name,rating,review_text,review_date,source
+Monika Wooten,5,"I needed an inspection done...",2026-08-18,google_manual
+```
+
+Download the starter file at `/phase1-google-reviews.csv` (14 full-name reviews). Each row runs GHL matching and lands in pending, needs review, or unmatched — never directly on the map.
+
+### GHL discovery diagnostics
+
+Review matching now tries multiple GHL search strategies, scans all location contacts when API search fails, and scores matches across `firstName`, `lastName`, `name`, `companyName`, and name-like custom fields.
+
+```bash
+npm run ghl:data-quality   # identity breakdown for all CRM contacts
+npm run rematch:unmatched  # re-run discovery for unmatched reviews
+```
+
+Unmatched review cards show discovery diagnostics, manual GHL search, **Link customer**, and **Re-run GHL discovery**.
+
 This app does not store emails, phones, or full street addresses. GHL contact IDs stay in the private `reviews` table and are never returned by `/api/map`.
 
 ## Vercel deployment

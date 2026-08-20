@@ -30,11 +30,10 @@ export async function POST(request: NextRequest) {
       ok: true,
       reviewId: result.review.id,
       matchStatus: result.matchStatus,
-      matchConfidence: result.review.matchConfidence,
       candidateCount: result.candidateCount,
       removedPipelinePlaceholders: result.removedPipelinePlaceholders,
-        queuePath: `/admin?status=${result.matchStatus}`,
-        matchConfidence: result.bestScore,
+      matchConfidence: result.bestScore,
+      queuePath: `/admin?status=${result.matchStatus}`,
     });
   } catch (error) {
     return NextResponse.json(

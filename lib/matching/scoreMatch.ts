@@ -1,5 +1,10 @@
 import type { CustomerActivitySignals, MatchReason, MatchResult } from "@/lib/types";
-import { namesAreExactMatch, splitPersonName } from "@/lib/matching/normalizeName";
+import {
+  firstNameAndLastInitialMatch,
+  isFirstNameOnlyReviewer,
+  namesAreExactMatch,
+  splitPersonName,
+} from "@/lib/matching/normalizeName";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -8,6 +13,7 @@ export type ScoreMatchInput = {
   reviewCreatedAt?: string | null;
   candidateName: string;
   candidateCountWithSameName: number;
+  candidateCountWithSameAbbreviatedPattern?: number;
   hasValidAddress: boolean;
   signals?: CustomerActivitySignals;
 };
@@ -35,6 +41,8 @@ export function scoreMatch(input: ScoreMatchInput): MatchResult {
   const google = splitPersonName(input.googleDisplayName);
   const candidate = splitPersonName(input.candidateName);
   const exact = namesAreExactMatch(input.googleDisplayName, input.candidateName);
+  const firstInitial = firstNameAndLastInitialMatch(input.googleDisplayName, input.candidateName);
+  const firstOnly = isFirstNameOnlyReviewer(input.googleDisplayName);
 
   if (!google.full || google.full.length < 3) {
     pushReason(reasons, {
@@ -50,6 +58,13 @@ export function scoreMatch(input: ScoreMatchInput): MatchResult {
       points: 50,
     });
     score += 50;
+  } else if (firstInitial) {
+    pushReason(reasons, {
+      code: "first_initial_name",
+      label: "First name and last initial match",
+      points: 35,
+    });
+    score += 35;
   } else if (google.first && candidate.first === google.first && google.last && candidate.last === google.last) {
     pushReason(reasons, {
       code: "exact_name",
@@ -57,6 +72,37 @@ export function scoreMatch(input: ScoreMatchInput): MatchResult {
       points: 50,
     });
     score += 50;
+  } else if (firstOnly && google.first && candidate.first === google.first) {
+    pushReason(reasons, {
+      code: "first_name_only",
+      label: "First name only match",
+      points: 10,
+    });
+    score += 10;
+  } else if (
+    google.first &&
+    candidate.first === google.first &&
+    google.last &&
+    !candidate.last
+  ) {
+    pushReason(reasons, {
+      code: "ghl_first_name_only",
+      label: "First name match only",
+      points: 10,
+    });
+    score += 10;
+  } else if (
+    google.last &&
+    candidate.last === google.last &&
+    google.first &&
+    !candidate.first
+  ) {
+    pushReason(reasons, {
+      code: "ghl_last_name_only",
+      label: "Last name match only",
+      points: 10,
+    });
+    score += 10;
   } else if (google.first && candidate.first.startsWith(google.first) && google.last && candidate.last === google.last) {
     pushReason(reasons, {
       code: "close_name",
@@ -80,10 +126,18 @@ export function scoreMatch(input: ScoreMatchInput): MatchResult {
     score -= 20;
   }
 
+  const abbreviatedCount = input.candidateCountWithSameAbbreviatedPattern ?? 0;
   if (exact && input.candidateCountWithSameName === 1) {
     pushReason(reasons, {
       code: "unique_name",
       label: "Only matching contact",
+      points: 25,
+    });
+    score += 25;
+  } else if (firstInitial && abbreviatedCount === 1) {
+    pushReason(reasons, {
+      code: "unique_name",
+      label: "Only matching contact for this first name and initial",
       points: 25,
     });
     score += 25;
@@ -92,6 +146,14 @@ export function scoreMatch(input: ScoreMatchInput): MatchResult {
     pushReason(reasons, {
       code: "duplicate_name",
       label: "Multiple identical names",
+      points: -penalty,
+    });
+    score -= penalty;
+  } else if (firstInitial && abbreviatedCount > 1) {
+    const penalty = Math.min(40, 15 * (abbreviatedCount - 1));
+    pushReason(reasons, {
+      code: "duplicate_name",
+      label: "Multiple contacts share this first name and initial",
       points: -penalty,
     });
     score -= penalty;
@@ -110,6 +172,7 @@ export function scoreMatch(input: ScoreMatchInput): MatchResult {
   const reviewRequestAt = input.signals?.reviewRequestAt;
   const serviceCompletedAt = input.signals?.serviceCompletedAt;
   const lastActivity = input.signals?.lastCustomerActivity;
+  let recentActivitySignal = false;
 
   if (reviewRequestAt && reviewDate) {
     const gap = daysBetween(reviewRequestAt, reviewDate);
@@ -120,6 +183,7 @@ export function scoreMatch(input: ScoreMatchInput): MatchResult {
         points: 20,
       });
       score += 20;
+      recentActivitySignal = true;
     }
   }
 
@@ -132,6 +196,7 @@ export function scoreMatch(input: ScoreMatchInput): MatchResult {
         points: 15,
       });
       score += 15;
+      recentActivitySignal = true;
     } else if (gap != null && gap < -3) {
       pushReason(reasons, {
         code: "conflicting_timing",
@@ -139,6 +204,7 @@ export function scoreMatch(input: ScoreMatchInput): MatchResult {
         points: -30,
       });
       score -= 30;
+      recentActivitySignal = true;
     }
   } else if (lastActivity && reviewDate) {
     const gap = Math.abs(daysBetween(lastActivity, reviewDate) ?? 999);
@@ -149,14 +215,26 @@ export function scoreMatch(input: ScoreMatchInput): MatchResult {
         points: 10,
       });
       score += 10;
+      recentActivitySignal = true;
     }
-  } else if (exact) {
-    pushReason(reasons, {
-      code: "no_recent_activity",
-      label: "No recent customer activity",
-      points: -30,
-    });
-    score -= 30;
+  }
+
+  if (!recentActivitySignal) {
+    if (exact) {
+      pushReason(reasons, {
+        code: "no_recent_activity",
+        label: "No recent customer activity",
+        points: -30,
+      });
+      score -= 30;
+    } else if (firstInitial) {
+      pushReason(reasons, {
+        code: "no_recent_activity",
+        label: "No recent customer activity for abbreviated reviewer name",
+        points: -20,
+      });
+      score -= 20;
+    }
   }
 
   score = Math.max(0, Math.min(100, score));

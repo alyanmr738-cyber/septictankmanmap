@@ -1,26 +1,26 @@
-import { ImportReviewForm } from "@/components/admin/ImportReviewForm";
+import { ImportCsvForm } from "@/components/admin/ImportCsvForm";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-export default function AdminImportReviewPage() {
+export default function AdminImportCsvPage() {
   return (
     <div className="stm-admin">
       <header className="stm-admin-header">
         <div>
           <p className="stm-map-kicker">Septic Tank Man</p>
-          <h1>Import Real Google Review</h1>
+          <h1>Batch Import Google Reviews</h1>
         </div>
         <LogoutButton />
       </header>
       <main className="stm-admin-main">
         <p className="stm-admin-copy">
-          <Link href="/admin?status=pending">← Back to admin queues</Link>
+          <Link href="/admin/reviews/new">← Single review import</Link>
           {" · "}
-          <Link href="/admin/reviews/import-csv">Batch CSV import</Link>
+          <Link href="/admin?status=pending">Admin queues</Link>
         </p>
-        <ImportReviewForm />
+        <ImportCsvForm />
       </main>
     </div>
   );

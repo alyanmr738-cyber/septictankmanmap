@@ -12,6 +12,7 @@ export type GhlApiContact = {
   lastName?: string;
   name?: string;
   contactName?: string;
+  companyName?: string;
   city?: string;
   state?: string;
   postalCode?: string;

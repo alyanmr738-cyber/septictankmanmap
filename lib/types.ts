@@ -31,12 +31,23 @@ export type GhlContact = {
   firstName?: string;
   lastName?: string;
   name?: string;
+  companyName?: string;
+  email?: string;
+  phone?: string;
   city?: string;
   state?: string;
   postalCode?: string;
   address1?: string;
   lastActivity?: string | null;
   dateAdded?: string | null;
+  customFields?: Array<Record<string, unknown>>;
+};
+
+export type MatchDiscoveryDiagnostics = {
+  strategiesAttempted: Array<{ strategy: string; resultCount: number }>;
+  rawContactCount: number;
+  filteredContactCount: number;
+  messages: string[];
 };
 
 export type CustomerActivitySignals = {
@@ -80,11 +91,18 @@ export type MatchMetadata = {
   notes?: string;
   pipelineTest?: boolean;
   manualImport?: boolean;
-  reviewSource?: "manual_google_verification" | "google_business_profile" | "seed";
+  batchImport?: boolean;
+  reviewSource?:
+    | "manual_google_verification"
+    | "google_manual"
+    | "google_business_profile"
+    | "seed"
+    | string;
   geocodingProvider?: string;
   geocodePrecision?: string;
   privacyDisplacementMeters?: number;
   addressSource?: string;
+  discoveryDiagnostics?: MatchDiscoveryDiagnostics;
 };
 
 export type ReviewRecord = {

@@ -22,6 +22,8 @@ export type ManualGoogleReviewInput = {
   reviewCreatedAt: string;
   googleReviewId?: string | null;
   replacePipelinePlaceholder?: boolean;
+  reviewSource?: string;
+  batchImport?: boolean;
 };
 
 export type ManualGoogleReviewResult = {
@@ -120,8 +122,10 @@ export async function ingestManualGoogleReview(
     publicLng: null,
     matchMetadata: {
       manualImport: true,
-      reviewSource: "manual_google_verification",
+      reviewSource: input.reviewSource?.trim() || "manual_google_verification",
       autoMatchLocked: false,
+      batchImport: input.batchImport ?? false,
+      discoveryDiagnostics: match.diagnostics,
     },
     approvedAt: null,
     rejectedAt: null,
