@@ -7,7 +7,10 @@
     "build": "NEXT_TELEMETRY_DISABLED=1 next build --webpack",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "tsx --test tests/*.test.ts",
+    "db:apply": "tsx scripts/apply-schema.ts",
+    "db:test-persistence": "tsx scripts/test-db-persistence.ts",
+    "ghl:diagnostic": "tsx scripts/ghl-diagnostic.ts"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

@@ -10,11 +10,17 @@ function toGhlContact(contact: GhlApiContact | GhlContact): GhlContact {
     id: contact.id,
     firstName: contact.firstName,
     lastName: contact.lastName,
-    name: contact.name ?? [contact.firstName, contact.lastName].filter(Boolean).join(" "),
+    name:
+      contact.name ??
+      ("contactName" in contact ? contact.contactName : undefined) ??
+      [contact.firstName, contact.lastName].filter(Boolean).join(" "),
     city: contact.city,
     state: contact.state,
     postalCode: contact.postalCode,
-    address1: "address1" in contact ? contact.address1 : undefined,
+    address1:
+      "address1" in contact
+        ? contact.address1 ?? ("address" in contact ? contact.address : undefined)
+        : undefined,
     lastActivity: contact.lastActivity,
     dateAdded: "dateAdded" in contact ? contact.dateAdded : undefined,
   };

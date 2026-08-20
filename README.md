@@ -65,6 +65,16 @@ Schema: `lib/database/schema.sql`
 
 Create a Supabase project (or any Postgres database), then run that SQL in the SQL editor. Put the pooled connection string in `DATABASE_URL`.
 
+Local helpers:
+
+```bash
+npm run db:apply              # applies lib/database/schema.sql
+npm run db:test-persistence   # writes + re-reads an approved review row
+npm run ghl:diagnostic -- "First Last" "Another Name"
+```
+
+When `DATABASE_URL` is set, `/admin` approvals persist in Postgres instead of the in-memory seed store. Set `MOCK_MODE=false` once you are ready to stop showing demo pins on `/map`.
+
 This app does not store emails, phones, or full street addresses. GHL contact IDs stay in the private `reviews` table and are never returned by `/api/map`.
 
 ## Vercel deployment

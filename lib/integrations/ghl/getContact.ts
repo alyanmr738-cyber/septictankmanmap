@@ -24,11 +24,11 @@ export async function getContact(contactId: string): Promise<GhlContact | null> 
       id: contact.id,
       firstName: contact.firstName,
       lastName: contact.lastName,
-      name: contact.name ?? [contact.firstName, contact.lastName].filter(Boolean).join(" "),
+      name: contact.name ?? contact.contactName ?? [contact.firstName, contact.lastName].filter(Boolean).join(" "),
       city: contact.city,
       state: contact.state,
       postalCode: contact.postalCode,
-      address1: contact.address1,
+      address1: contact.address1 ?? contact.address,
       lastActivity: contact.lastActivity,
       dateAdded: contact.dateAdded,
     };

@@ -11,10 +11,14 @@ export type GhlApiContact = {
   firstName?: string;
   lastName?: string;
   name?: string;
+  contactName?: string;
   city?: string;
   state?: string;
   postalCode?: string;
+  address?: string;
   address1?: string;
+  address2?: string;
+  customFields?: Array<Record<string, unknown>>;
   lastActivity?: string;
   dateAdded?: string;
   email?: string;
