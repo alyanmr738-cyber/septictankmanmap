@@ -1,7 +1,7 @@
 import { isMockMode } from "@/lib/env";
 import { getMockGhlContact } from "@/lib/integrations/ghl/mockContacts";
 import { getContact } from "@/lib/integrations/ghl/getContact";
-import type { CustomerActivitySignals } from "@/lib/types";
+import type { CustomerActivitySignals, GhlContact } from "@/lib/types";
 
 /**
  * Adapter for optional GHL activity signals.
@@ -11,11 +11,11 @@ export async function getCustomerActivitySignals(
   contactId: string,
 ): Promise<CustomerActivitySignals> {
   if (isMockMode()) {
-    const mock = getMockGhlContact(contactId);
+    const mock = getMockGhlContact(contactId) as (GhlContact & CustomerActivitySignals) | null;
     return {
       lastCustomerActivity: mock?.lastActivity ?? null,
-      serviceCompletedAt: mock && "serviceCompletedAt" in mock ? mock.serviceCompletedAt : null,
-      reviewRequestAt: mock && "reviewRequestAt" in mock ? mock.reviewRequestAt : null,
+      serviceCompletedAt: mock?.serviceCompletedAt ?? null,
+      reviewRequestAt: mock?.reviewRequestAt ?? null,
     };
   }
 

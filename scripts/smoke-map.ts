@@ -1,4 +1,4 @@
-import { getPublicMapData } from "../lib/database/public-map.ts";
+import { getPublicMapData } from "@/lib/database/public-map";
 
 async function main() {
   const data = await getPublicMapData();

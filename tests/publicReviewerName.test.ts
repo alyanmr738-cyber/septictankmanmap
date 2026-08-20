@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { toPublicReviewerName } from "../lib/privacy/publicReviewerName.ts";
+import { toPublicReviewerName } from "@/lib/privacy/publicReviewerName";
 
 describe("toPublicReviewerName", () => {
   it("abbreviates a standard first and last name", () => {

@@ -5,8 +5,8 @@ import {
   jsonContainsForbiddenPublicFields,
   sanitizePublicLocations,
   toPublicReviewLocation,
-} from "../lib/privacy/sanitizePublicReview.ts";
-import type { ReviewRecord } from "../lib/types.ts";
+} from "@/lib/privacy/sanitizePublicReview";
+import type { ReviewRecord } from "@/lib/types";
 
 const approved: ReviewRecord = {
   id: "abc123",

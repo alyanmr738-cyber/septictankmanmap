@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import {
   anonymizeCoordinates,
   coordinatesAreEqual,
-} from "../lib/privacy/anonymizeCoordinates.ts";
+} from "@/lib/privacy/anonymizeCoordinates";
 
 describe("anonymizeCoordinates", () => {
   const bradenton = { lat: 27.4989, lng: -82.5748 };

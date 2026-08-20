@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { scoreMatch } from "../lib/matching/scoreMatch.ts";
-import { findCandidates } from "../lib/matching/findCandidates.ts";
+import { scoreMatch } from "@/lib/matching/scoreMatch";
+import { findCandidates } from "@/lib/matching/findCandidates";
 
 describe("scoreMatch", () => {
   it("scores a unique exact name with recent service highly", () => {
