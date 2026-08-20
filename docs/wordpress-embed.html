@@ -1,0 +1,33 @@
+<div class="stm-review-map-wrapper">
+  <iframe
+    src="https://YOUR-VERCEL-DOMAIN.vercel.app/map"
+    title="Septic Tank Man Customer Reviews Map"
+    loading="lazy"
+    allowfullscreen
+  ></iframe>
+</div>
+
+<style>
+  .stm-review-map-wrapper {
+    width: 100%;
+    height: 100%;
+    min-height: 700px;
+    overflow: hidden;
+  }
+
+  .stm-review-map-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    min-height: 700px;
+    border: 0;
+    display: block;
+    max-width: 100%;
+  }
+
+  @media (max-width: 767px) {
+    .stm-review-map-wrapper,
+    .stm-review-map-wrapper iframe {
+      min-height: 560px;
+    }
+  }
+</style>
