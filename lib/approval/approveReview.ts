@@ -61,6 +61,7 @@ export async function approveReview(reviewId: string, ghlContactId?: string) {
       ...(review.matchMetadata ?? {}),
       selectedGhlContactId: selectedId,
       autoMatchLocked: true,
+      geocodePrecision: geocoded.precision,
     },
     updatedAt: now,
   });

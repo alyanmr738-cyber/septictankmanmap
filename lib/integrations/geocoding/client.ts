@@ -34,13 +34,34 @@ export function getGeocodingProvider(): GeocodingProvider {
 }
 
 export async function geocodeCustomerLocation(query: GeocodeQuery): Promise<GeocodedLocation | null> {
-  try {
-    return await getGeocodingProvider().geocode(query);
-  } catch (error) {
-    logger.error("Geocoding failed", {
-      provider: getGeocodingConfig().provider,
-      error: error instanceof Error ? error.message : "unknown",
-    });
-    return null;
+  const provider = getGeocodingProvider();
+  const attempts: Array<{ precision: GeocodedLocation["precision"]; query: GeocodeQuery }> = [
+    { precision: "street", query },
+    {
+      precision: "postal",
+      query: { city: query.city, state: query.state, postalCode: query.postalCode },
+    },
+    { precision: "city", query: { city: query.city, state: query.state } },
+  ];
+
+  for (const attempt of attempts) {
+    const hasInput = Object.values(attempt.query).some(Boolean);
+    if (!hasInput) {
+      continue;
+    }
+    try {
+      const result = await provider.geocode(attempt.query);
+      if (result) {
+        return { ...result, precision: attempt.precision };
+      }
+    } catch (error) {
+      logger.error("Geocoding attempt failed", {
+        provider: getGeocodingConfig().provider,
+        precision: attempt.precision,
+        error: error instanceof Error ? error.message : "unknown",
+      });
+    }
   }
+
+  return null;
 }

@@ -3,6 +3,7 @@ export type GeocodedLocation = {
   lng: number;
   city?: string;
   state?: string;
+  precision?: "street" | "postal" | "city";
 };
 
 export type GeocodeQuery = {

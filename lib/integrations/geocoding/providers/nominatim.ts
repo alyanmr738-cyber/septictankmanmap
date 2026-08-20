@@ -2,7 +2,8 @@ import type { GeocodeQuery, GeocodedLocation, GeocodingProvider } from "@/lib/in
 import { logger } from "@/lib/logger";
 
 function formatQuery(query: GeocodeQuery): string {
-  return [query.addressLine, query.city, query.state, query.postalCode].filter(Boolean).join(", ");
+  const state = query.state === "FL" ? "Florida" : query.state;
+  return [query.addressLine, query.city, state, query.postalCode, "USA"].filter(Boolean).join(", ");
 }
 
 export class NominatimGeocodingProvider implements GeocodingProvider {
