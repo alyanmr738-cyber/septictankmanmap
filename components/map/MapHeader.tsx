@@ -3,6 +3,7 @@
 type MapHeaderProps = {
   reviewCount: number;
   averageRating: number | null;
+  previewMode: boolean;
 };
 
 function stars(averageRating: number | null): string {
@@ -10,20 +11,36 @@ function stars(averageRating: number | null): string {
   return "★".repeat(count) + "☆".repeat(5 - count);
 }
 
-export function MapHeader({ reviewCount, averageRating }: MapHeaderProps) {
+function reviewMeta(reviewCount: number, averageRating: number | null): string {
+  const starLine = stars(averageRating);
+  if (averageRating != null && reviewCount > 0) {
+    const formatted = Number.isInteger(averageRating)
+      ? averageRating.toFixed(0)
+      : averageRating.toFixed(1);
+    return `${starLine} ${formatted} • ${reviewCount.toLocaleString()} Google Reviews`;
+  }
+  return `${starLine} ${reviewCount.toLocaleString()} Review${reviewCount === 1 ? "" : "s"}`;
+}
+
+export function MapHeader({ reviewCount, averageRating, previewMode }: MapHeaderProps) {
+  if (previewMode) {
+    return (
+      <div className="stm-map-overlay">
+        <div className="stm-map-overlay-card stm-map-overlay-card--compact stm-map-overlay-card--preview">
+          <p className="stm-map-kicker">Customer Map Preview</p>
+          <h1>Southwest Florida Service Coverage</h1>
+          <p className="stm-map-sub">Demo locations for layout testing</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="stm-map-overlay">
-      <div className="stm-map-overlay-card">
-        <p className="stm-map-kicker">Southwest Florida</p>
-        <h1>Customers Across Southwest Florida</h1>
-        <p className="stm-map-sub">Real customers. Real reviews.</p>
-        <p className="stm-map-meta">
-          <span className="stm-stars" aria-hidden="true">
-            {stars(averageRating)}
-          </span>
-          <span>
-            {reviewCount} Customer Review{reviewCount === 1 ? "" : "s"}
-          </span>
+      <div className="stm-map-overlay-card stm-map-overlay-card--compact">
+        <h1>Trusted Across Southwest Florida</h1>
+        <p className="stm-map-meta stm-map-meta--compact" aria-label={`${reviewCount} reviews`}>
+          {reviewMeta(reviewCount, averageRating)}
         </p>
       </div>
     </div>

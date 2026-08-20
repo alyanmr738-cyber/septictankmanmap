@@ -129,6 +129,7 @@ export type PublicReviewLocation = {
   reviewer: string;
   review: string;
   reviewDate: string;
+  verifiedGoogle: boolean;
 };
 
 export type PublicMapResponse = {

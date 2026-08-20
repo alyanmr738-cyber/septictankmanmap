@@ -44,6 +44,7 @@ describe("public API sanitization", () => {
       reviewer: "John S.",
       review: "Excellent service.",
       reviewDate: "2026-08-17",
+      verifiedGoogle: false,
     });
     assert.equal(Object.prototype.hasOwnProperty.call(location, "ghlContactId"), false);
     assert.equal(jsonContainsForbiddenPublicFields(location).length, 0);
@@ -69,6 +70,7 @@ describe("public API sanitization", () => {
           reviewer: "John S.",
           review: "Excellent service.",
           reviewDate: "2026-08-17",
+          verifiedGoogle: false,
           ghlContactId: "should-not-appear",
         } as never),
       /unexpected map field/i,

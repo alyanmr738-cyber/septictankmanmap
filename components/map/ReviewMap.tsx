@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import L from "leaflet";
-import { MapContainer, TileLayer, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, ZoomControl, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import "leaflet/dist/leaflet.css";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.css";
@@ -16,6 +16,7 @@ type ReviewMapProps = {
   locations: PublicReviewLocation[];
   reviewCount: number;
   averageRating: number | null;
+  previewMode: boolean;
 };
 
 function createClusterIcon(cluster: { getChildCount: () => number }) {
@@ -23,7 +24,7 @@ function createClusterIcon(cluster: { getChildCount: () => number }) {
   return L.divIcon({
     html: `<div class="stm-cluster">${count}</div>`,
     className: "stm-cluster-wrap",
-    iconSize: L.point(42, 42, true),
+    iconSize: L.point(46, 46, true),
   });
 }
 
@@ -36,7 +37,12 @@ function FitLocations({ locations }: { locations: PublicReviewLocation[] }) {
       return;
     }
     const bounds = L.latLngBounds(locations.map((location) => [location.lat, location.lng]));
-    map.fitBounds(bounds.pad(0.18), { maxZoom: 11, animate: false });
+    map.fitBounds(bounds.pad(0.1), {
+      maxZoom: 12,
+      animate: false,
+      paddingTopLeft: [12, 88],
+      paddingBottomRight: [12, 36],
+    });
   }, [locations, map]);
 
   return null;
@@ -71,19 +77,32 @@ function ScrollZoomOnInteract() {
   return null;
 }
 
-export default function ReviewMap({ locations, reviewCount, averageRating }: ReviewMapProps) {
+export default function ReviewMap({
+  locations,
+  reviewCount,
+  averageRating,
+  previewMode,
+}: ReviewMapProps) {
   const tiles = getMapTileConfig();
 
   return (
-    <div className="stm-map-root" role="application" aria-label="Approximate customer review locations across Southwest Florida">
-      <MapHeader reviewCount={reviewCount} averageRating={averageRating} />
+    <div
+      className="stm-map-root"
+      role="application"
+      aria-label="Approximate customer review locations across Southwest Florida"
+    >
+      <MapHeader
+        reviewCount={reviewCount}
+        averageRating={averageRating}
+        previewMode={previewMode}
+      />
       <MapContainer
         center={SWFL_CENTER}
         zoom={SWFL_DEFAULT_ZOOM}
         className="stm-leaflet"
         scrollWheelZoom={false}
+        zoomControl={false}
         attributionControl
-        zoomControl
         dragging
         touchZoom
       >
@@ -92,23 +111,34 @@ export default function ReviewMap({ locations, reviewCount, averageRating }: Rev
           attribution={tiles.attribution}
           subdomains={tiles.subdomains}
           maxZoom={tiles.maxZoom}
+          className="stm-map-tiles"
         />
+        <ZoomControl position="bottomright" />
         <ScrollZoomOnInteract />
         <FitLocations locations={locations} />
         <MarkerClusterGroup
           chunkedLoading
+          animate
+          animateAddingMarkers
           showCoverageOnHover={false}
           spiderfyOnMaxZoom
-          disableClusteringAtZoom={13}
-          maxClusterRadius={56}
+          zoomToBoundsOnClick
+          removeOutsideVisibleBounds
+          disableClusteringAtZoom={14}
+          maxClusterRadius={48}
+          spiderfyDistanceMultiplier={1.6}
           iconCreateFunction={createClusterIcon}
         >
           {locations.map((location) => (
-            <ReviewMarker key={location.id} location={location} />
+            <ReviewMarker
+              key={location.id}
+              location={location}
+              previewMode={previewMode}
+            />
           ))}
         </MarkerClusterGroup>
       </MapContainer>
-      <p className="stm-map-hint">Click the map to enable zoom. Locations are approximate.</p>
+      <p className="stm-map-hint">Click to explore • Locations approximate</p>
     </div>
   );
 }

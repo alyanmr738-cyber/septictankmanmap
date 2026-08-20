@@ -2,13 +2,17 @@
 
 import type { PublicReviewLocation } from "@/lib/types";
 
-function formatDate(value: string): string {
+type ReviewPopupProps = {
+  location: PublicReviewLocation;
+  previewMode: boolean;
+};
+
+function formatMonthYear(value: string): string {
   if (!value) return "";
   const date = new Date(`${value}T00:00:00`);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString("en-US", {
     month: "long",
-    day: "numeric",
     year: "numeric",
   });
 }
@@ -17,19 +21,27 @@ function starLabel(rating: number): string {
   return "★".repeat(rating) + "☆".repeat(Math.max(0, 5 - rating));
 }
 
-export function ReviewPopup({ location }: { location: PublicReviewLocation }) {
+export function ReviewPopup({ location, previewMode }: ReviewPopupProps) {
   const place = [location.city, location.state].filter(Boolean).join(", ");
+  const showVerified = !previewMode && location.verifiedGoogle;
 
   return (
     <article className="stm-popup">
-      <p className="stm-stars" aria-label={`${location.rating} out of 5 stars`}>
+      <p className="stm-popup-stars" aria-label={`${location.rating} out of 5 stars`}>
         {starLabel(location.rating)}
       </p>
-      {place ? <h2>{place}</h2> : null}
-      {location.review ? <blockquote>“{location.review}”</blockquote> : null}
+      {location.review ? (
+        <blockquote className="stm-popup-quote">“{location.review}”</blockquote>
+      ) : null}
       <p className="stm-popup-byline">— {location.reviewer}</p>
-      {location.reviewDate ? <p className="stm-popup-date">{formatDate(location.reviewDate)}</p> : null}
-      <p className="stm-popup-note">Approximate customer location</p>
+      {place ? <p className="stm-popup-place">{place}</p> : null}
+      {location.reviewDate ? (
+        <p className="stm-popup-date">{formatMonthYear(location.reviewDate)}</p>
+      ) : null}
+      {showVerified ? (
+        <p className="stm-popup-verified">✓ Verified Google review</p>
+      ) : null}
+      <p className="stm-popup-note">Approximate location</p>
     </article>
   );
 }

@@ -8,12 +8,18 @@ import { ReviewPopup } from "@/components/map/ReviewPopup";
 const pinIcon = L.divIcon({
   className: "stm-marker",
   html: '<span class="stm-marker-pin" aria-hidden="true"></span>',
-  iconSize: [28, 36],
-  iconAnchor: [14, 36],
-  popupAnchor: [0, -28],
+  iconSize: [32, 41],
+  iconAnchor: [16, 41],
+  popupAnchor: [0, -32],
 });
 
-export function ReviewMarker({ location }: { location: PublicReviewLocation }) {
+export function ReviewMarker({
+  location,
+  previewMode,
+}: {
+  location: PublicReviewLocation;
+  previewMode: boolean;
+}) {
   return (
     <Marker
       position={[location.lat, location.lng]}
@@ -21,8 +27,8 @@ export function ReviewMarker({ location }: { location: PublicReviewLocation }) {
       title={`${location.city}, ${location.state} review from ${location.reviewer}`}
       keyboard
     >
-      <Popup>
-        <ReviewPopup location={location} />
+      <Popup className="stm-popup-wrap" minWidth={260} maxWidth={300}>
+        <ReviewPopup location={location} previewMode={previewMode} />
       </Popup>
     </Marker>
   );

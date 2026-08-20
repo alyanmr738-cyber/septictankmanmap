@@ -11,10 +11,11 @@ const ReviewMap = dynamic(() => import("@/components/map/ReviewMap"), {
 
 type MapShellProps = {
   data: PublicMapResponse | null;
+  previewMode: boolean;
   error?: boolean;
 };
 
-export function MapShell({ data, error = false }: MapShellProps) {
+export function MapShell({ data, previewMode, error = false }: MapShellProps) {
   if (error) {
     return <MapErrorState />;
   }
@@ -26,6 +27,7 @@ export function MapShell({ data, error = false }: MapShellProps) {
       locations={data.locations}
       reviewCount={data.reviewCount}
       averageRating={data.averageRating}
+      previewMode={previewMode}
     />
   );
 }

@@ -7,9 +7,10 @@ export type MapTileConfig = {
 };
 
 const CARTO_POSITRON: MapTileConfig = {
-  name: "carto-positron",
-  url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  name: "carto-voyager",
+  url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+  attribution:
+    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
   subdomains: "abcd",
   maxZoom: 19,
 };
@@ -28,5 +29,5 @@ export function getMapTileConfig(): MapTileConfig {
   return CARTO_POSITRON;
 }
 
-export const SWFL_CENTER: [number, number] = [27.15, -82.35];
-export const SWFL_DEFAULT_ZOOM = 9;
+export const SWFL_CENTER: [number, number] = [27.08, -82.42];
+export const SWFL_DEFAULT_ZOOM = 10;

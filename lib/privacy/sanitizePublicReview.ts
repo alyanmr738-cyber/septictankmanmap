@@ -10,6 +10,7 @@ const PUBLIC_KEYS = [
   "reviewer",
   "review",
   "reviewDate",
+  "verifiedGoogle",
 ] as const;
 
 const FORBIDDEN_PUBLIC_KEYS = [
@@ -47,6 +48,7 @@ export function toPublicReviewLocation(record: ReviewRecord): PublicReviewLocati
     reviewer: record.publicReviewerName,
     review: record.reviewText,
     reviewDate: record.reviewCreatedAt ? record.reviewCreatedAt.slice(0, 10) : "",
+    verifiedGoogle: !record.isSeed && Boolean(record.googleReviewId),
   };
 }
 
@@ -67,6 +69,7 @@ export function assertPublicLocationSafe(location: PublicReviewLocation): Public
     reviewer: location.reviewer,
     review: location.review,
     reviewDate: location.reviewDate,
+    verifiedGoogle: location.verifiedGoogle,
   };
 
   for (const key of Object.keys(location)) {
