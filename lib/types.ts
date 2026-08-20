@@ -80,8 +80,9 @@ export type MatchMetadata = {
   notes?: string;
   pipelineTest?: boolean;
   manualImport?: boolean;
+  reviewSource?: "manual_google_verification" | "google_business_profile" | "seed";
   geocodingProvider?: string;
-  geocodePrecision?: "street" | "postal" | "city";
+  geocodePrecision?: string;
   privacyDisplacementMeters?: number;
   addressSource?: string;
 };
@@ -161,4 +162,5 @@ export type AdminReviewCard = {
   rejectedAt: string | null;
   selectedCandidateId: string | null;
   candidates: MatchCandidate[];
+  matchMetadata: ReviewRecord["matchMetadata"];
 };

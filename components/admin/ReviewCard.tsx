@@ -28,6 +28,7 @@ export function ReviewCard({ review }: { review: AdminReviewCard }) {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [revealedAddress, setRevealedAddress] = useState<string | null>(null);
+  const [privacyPreview, setPrivacyPreview] = useState<string | null>(null);
   const [candidates, setCandidates] = useState(review.candidates);
 
   const selected = useMemo(
@@ -63,6 +64,9 @@ export function ReviewCard({ review }: { review: AdminReviewCard }) {
           {starLabel(review.rating)}
         </p>
         <h2>{review.reviewerDisplayName}</h2>
+        {review.matchMetadata?.manualImport ? (
+          <span className="stm-badge stm-badge-muted">MANUAL IMPORT</span>
+        ) : null}
         {review.isSeed ? <span className="stm-badge stm-badge-muted">SEED</span> : null}
         <ConfidenceBadge score={review.matchConfidence} />
       </header>
@@ -162,6 +166,38 @@ export function ReviewCard({ review }: { review: AdminReviewCard }) {
         </button>
         <button
           type="button"
+          className="stm-btn"
+          disabled={busy !== null || !selectedId}
+          onClick={() =>
+            run("privacy", async () => {
+              const response = await fetch(`/api/admin/reviews/${review.id}/privacy-preview`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ghlContactId: selectedId }),
+              });
+              const data = (await response.json()) as {
+                privacy?: {
+                  geocoderResultLabel?: string;
+                  displacementMeters?: number;
+                  meetsMinimumDisplacement?: boolean;
+                };
+                error?: string;
+              };
+              if (response.ok && data.privacy) {
+                setPrivacyPreview(
+                  `${data.privacy.geocoderResultLabel} · Privacy displacement: ${(
+                    (data.privacy.displacementMeters ?? 0) / 1000
+                  ).toFixed(2)} km · Meets minimum: ${data.privacy.meetsMinimumDisplacement ? "yes" : "no"}`,
+                );
+              }
+              return response;
+            })
+          }
+        >
+          Privacy preview
+        </button>
+        <button
+          type="button"
           className="stm-btn stm-btn-danger"
           disabled={busy !== null}
           onClick={() =>
@@ -198,6 +234,7 @@ export function ReviewCard({ review }: { review: AdminReviewCard }) {
       </div>
 
       {revealedAddress ? <p className="stm-reveal">Temporary address view: {revealedAddress}</p> : null}
+      {privacyPreview ? <p className="stm-reveal">{privacyPreview}</p> : null}
       {error ? <p className="stm-error">{error}</p> : null}
     </article>
   );

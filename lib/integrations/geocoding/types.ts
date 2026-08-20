@@ -1,9 +1,11 @@
+import type { GeocodePrecision } from "@/lib/integrations/geocoding/precision";
+
 export type GeocodedLocation = {
   lat: number;
   lng: number;
   city?: string;
   state?: string;
-  precision?: "street" | "postal" | "city";
+  precision?: GeocodePrecision;
 };
 
 export type GeocodeQuery = {

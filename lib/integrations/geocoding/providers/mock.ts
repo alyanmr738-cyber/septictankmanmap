@@ -12,6 +12,7 @@ export class MockGeocodingProvider implements GeocodingProvider {
       lng: match.lng,
       city: match.city,
       state: match.state,
+      precision: "city",
     };
   }
 }

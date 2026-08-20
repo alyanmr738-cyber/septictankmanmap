@@ -1,3 +1,5 @@
+import { isMockMode } from "@/lib/env";
+import { assertReviewPublishable, isPipelinePlaceholderReview } from "@/lib/privacy/placeholderGuard";
 import type { PublicReviewLocation, ReviewRecord } from "@/lib/types";
 
 const PUBLIC_KEYS = [
@@ -37,6 +39,12 @@ export function toPublicReviewLocation(record: ReviewRecord): PublicReviewLocati
   ) {
     return null;
   }
+
+  if (!isMockMode() && isPipelinePlaceholderReview(record)) {
+    return null;
+  }
+
+  assertReviewPublishable(record);
 
   return {
     id: record.id,

@@ -53,7 +53,7 @@ export function ImportReviewForm() {
             ? ` Removed ${data.removedPipelinePlaceholders} pipeline placeholder record(s).`
             : ""),
       );
-      router.push(data.queuePath ?? "/admin?status=matched");
+      router.push(data.queuePath ?? "/admin?status=pending");
       router.refresh();
     } catch {
       setError("Import failed.");

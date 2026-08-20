@@ -1,7 +1,5 @@
 import { findCandidates } from "@/lib/matching/findCandidates";
 import { normalizeName } from "@/lib/matching/normalizeName";
-import { searchContacts } from "@/lib/integrations/ghl/searchContacts";
-import { getCustomerActivitySignals } from "@/lib/integrations/ghl/activitySignals";
 import { toPublicReviewerName } from "@/lib/privacy/publicReviewerName";
 import {
   createReviewId,
@@ -11,7 +9,11 @@ import {
   replaceCandidates,
   upsertReview,
 } from "@/lib/database/reviews";
-import type { GoogleReview, MatchStatus, ReviewRecord } from "@/lib/types";
+import {
+  resolveImportedReviewStatus,
+  runReviewMatching,
+} from "@/lib/reviews/runReviewMatching";
+import type { GoogleReview, ReviewRecord } from "@/lib/types";
 
 export type ManualGoogleReviewInput = {
   reviewerDisplayName: string;
@@ -24,9 +26,10 @@ export type ManualGoogleReviewInput = {
 
 export type ManualGoogleReviewResult = {
   review: ReviewRecord;
-  matchStatus: MatchStatus;
+  matchStatus: ReviewRecord["matchStatus"];
   candidateCount: number;
   removedPipelinePlaceholders: number;
+  bestScore: number | null;
 };
 
 function validateManualReviewInput(input: ManualGoogleReviewInput): void {
@@ -96,19 +99,10 @@ export async function ingestManualGoogleReview(
     updateTime: null,
   };
 
-  const contacts = await searchContacts(googleReview.reviewerDisplayName);
-  const signalsByContactId: Record<string, Awaited<ReturnType<typeof getCustomerActivitySignals>>> = {};
-  for (const contact of contacts) {
-    signalsByContactId[contact.id] = await getCustomerActivitySignals(contact.id);
-  }
-
-  const match = findCandidates({
-    review: googleReview,
-    contacts,
-    signalsByContactId,
-  });
-
+  const match = await runReviewMatching(googleReview);
+  const topCandidate = match.candidates[0] ?? null;
   const now = new Date().toISOString();
+
   const review: ReviewRecord = {
     id: createReviewId(),
     googleReviewId,
@@ -117,15 +111,16 @@ export async function ingestManualGoogleReview(
     rating: googleReview.rating,
     reviewText: googleReview.comment,
     reviewCreatedAt: googleReview.createTime,
-    ghlContactId: match.candidates[0]?.ghlContactId ?? null,
-    matchStatus: match.status === "matched" ? "matched" : match.status,
+    ghlContactId: topCandidate?.ghlContactId ?? null,
+    matchStatus: resolveImportedReviewStatus(match),
     matchConfidence: match.bestScore,
-    publicCity: match.candidates[0]?.city ?? null,
-    publicState: match.candidates[0]?.state ?? null,
+    publicCity: topCandidate?.city ?? null,
+    publicState: topCandidate?.state ?? null,
     publicLat: null,
     publicLng: null,
     matchMetadata: {
       manualImport: true,
+      reviewSource: "manual_google_verification",
       autoMatchLocked: false,
     },
     approvedAt: null,
@@ -135,10 +130,6 @@ export async function ingestManualGoogleReview(
     updatedAt: now,
   };
 
-  if (match.status === "matched" && match.candidates[0]) {
-    review.ghlContactId = match.candidates[0].ghlContactId;
-  }
-
   await upsertReview(review);
   await replaceCandidates(review.id, match.candidates);
 
@@ -147,5 +138,6 @@ export async function ingestManualGoogleReview(
     matchStatus: review.matchStatus,
     candidateCount: match.candidates.length,
     removedPipelinePlaceholders,
+    bestScore: match.bestScore,
   };
 }

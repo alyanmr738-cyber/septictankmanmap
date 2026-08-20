@@ -420,6 +420,13 @@ input:focus-visible {
   padding: 24px 0 8px;
 }
 
+.stm-admin-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .stm-banner {
   background: #fff7d6;
   border: 1px solid #ead889;

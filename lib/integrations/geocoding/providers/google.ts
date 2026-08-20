@@ -1,3 +1,4 @@
+import { mapGoogleLocationType } from "@/lib/integrations/geocoding/precision";
 import type { GeocodeQuery, GeocodedLocation, GeocodingProvider } from "@/lib/integrations/geocoding/types";
 import { logger } from "@/lib/logger";
 
@@ -27,7 +28,7 @@ export class GoogleGeocodingProvider implements GeocodingProvider {
     const data = (await response.json()) as {
       status: string;
       results?: Array<{
-        geometry?: { location?: { lat: number; lng: number } };
+        geometry?: { location?: { lat: number; lng: number }; location_type?: string };
         address_components?: Array<{ long_name: string; short_name: string; types: string[] }>;
       }>;
     };
@@ -50,6 +51,7 @@ export class GoogleGeocodingProvider implements GeocodingProvider {
       lng: result.geometry!.location!.lng,
       city: cityComponent?.long_name,
       state: stateComponent?.short_name,
+      precision: mapGoogleLocationType(result.geometry?.location_type),
     };
   }
 }

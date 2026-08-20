@@ -8,6 +8,7 @@ import {
   createGeocodePrivacyReport,
   formatGeocodePrivacyLog,
 } from "@/lib/privacy/geocodePrivacyReport";
+import { assertReviewPublishable } from "@/lib/privacy/placeholderGuard";
 import { toPublicReviewerName } from "@/lib/privacy/publicReviewerName";
 import { getReviewById, listCandidates, upsertReview } from "@/lib/database/reviews";
 import { logger } from "@/lib/logger";
@@ -21,6 +22,15 @@ export async function approveReview(reviewId: string, ghlContactId?: string) {
   const selectedId = ghlContactId ?? review.ghlContactId;
   if (!selectedId) {
     return NextResponse.json({ error: "A customer match is required before approval" }, { status: 400 });
+  }
+
+  try {
+    assertReviewPublishable(review);
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Review cannot be published" },
+      { status: 400 },
+    );
   }
 
   const contact = await getContact(selectedId);

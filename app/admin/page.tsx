@@ -1,4 +1,4 @@
-import { ImportReviewForm } from "@/components/admin/ImportReviewForm";
+import Link from "next/link";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { ReviewCard } from "@/components/admin/ReviewCard";
 import { StatusTabs } from "@/components/admin/StatusTabs";
@@ -23,7 +23,12 @@ export default async function AdminPage({
           <p className="stm-map-kicker">Septic Tank Man</p>
           <h1>Review Map Admin</h1>
         </div>
-        <LogoutButton />
+        <div className="stm-admin-actions">
+          <Link className="stm-btn stm-btn-primary" href="/admin/reviews/new">
+            Import real Google review
+          </Link>
+          <LogoutButton />
+        </div>
       </header>
       {!hasDatabase() ? (
         <p className="stm-banner">
@@ -33,7 +38,6 @@ export default async function AdminPage({
         </p>
       ) : null}
       <main className="stm-admin-main">
-        <ImportReviewForm />
         <StatusTabs active={active} />
         {reviews.length === 0 ? (
           <p className="stm-admin-copy">No reviews in this queue.</p>

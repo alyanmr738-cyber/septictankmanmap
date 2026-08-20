@@ -1,3 +1,4 @@
+import type { GeocodePrecision } from "@/lib/integrations/geocoding/precision";
 import { getGeocodingConfig } from "@/lib/env";
 import { GoogleGeocodingProvider } from "@/lib/integrations/geocoding/providers/google";
 import { MapboxGeocodingProvider } from "@/lib/integrations/geocoding/providers/mapbox";
@@ -35,13 +36,13 @@ export function getGeocodingProvider(): GeocodingProvider {
 
 export async function geocodeCustomerLocation(query: GeocodeQuery): Promise<GeocodedLocation | null> {
   const provider = getGeocodingProvider();
-  const attempts: Array<{ precision: GeocodedLocation["precision"]; query: GeocodeQuery }> = [
-    { precision: "street", query },
+  const attempts: Array<{ fallbackPrecision: GeocodePrecision; query: GeocodeQuery }> = [
+    { fallbackPrecision: "street", query },
     {
-      precision: "postal",
+      fallbackPrecision: "postal",
       query: { city: query.city, state: query.state, postalCode: query.postalCode },
     },
-    { precision: "city", query: { city: query.city, state: query.state } },
+    { fallbackPrecision: "city", query: { city: query.city, state: query.state } },
   ];
 
   for (const attempt of attempts) {
@@ -52,12 +53,18 @@ export async function geocodeCustomerLocation(query: GeocodeQuery): Promise<Geoc
     try {
       const result = await provider.geocode(attempt.query);
       if (result) {
-        return { ...result, precision: attempt.precision };
+        return {
+          ...result,
+          precision:
+            result.precision && result.precision !== "unknown"
+              ? result.precision
+              : attempt.fallbackPrecision,
+        };
       }
     } catch (error) {
       logger.error("Geocoding attempt failed", {
         provider: getGeocodingConfig().provider,
-        precision: attempt.precision,
+        precision: attempt.fallbackPrecision,
         error: error instanceof Error ? error.message : "unknown",
       });
     }

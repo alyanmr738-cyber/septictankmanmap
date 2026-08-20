@@ -1,5 +1,5 @@
 import { getReviewById, listCandidates, listReviews } from "@/lib/database/reviews";
-import type { AdminReviewCard, MatchStatus } from "@/lib/types";
+import type { AdminReviewCard, MatchStatus, ReviewRecord } from "@/lib/types";
 
 const PENDING_STATUSES: MatchStatus[] = ["pending", "matched"];
 
@@ -29,6 +29,7 @@ export async function getAdminReviewCards(status: string | null): Promise<AdminR
       rejectedAt: review.rejectedAt,
       selectedCandidateId: review.ghlContactId,
       candidates,
+      matchMetadata: review.matchMetadata,
     });
   }
   return cards;
@@ -55,5 +56,6 @@ export async function getAdminReviewCard(id: string): Promise<AdminReviewCard | 
     rejectedAt: review.rejectedAt,
     selectedCandidateId: review.ghlContactId,
     candidates,
+    matchMetadata: review.matchMetadata,
   };
 }

@@ -33,7 +33,8 @@ export async function POST(request: NextRequest) {
       matchConfidence: result.review.matchConfidence,
       candidateCount: result.candidateCount,
       removedPipelinePlaceholders: result.removedPipelinePlaceholders,
-      queuePath: `/admin?status=${result.matchStatus}`,
+        queuePath: `/admin?status=${result.matchStatus}`,
+        matchConfidence: result.bestScore,
     });
   } catch (error) {
     return NextResponse.json(

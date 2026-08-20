@@ -1,4 +1,5 @@
 import type { GeocodeQuery, GeocodedLocation, GeocodingProvider } from "@/lib/integrations/geocoding/types";
+import { mapNominatimPrecision } from "@/lib/integrations/geocoding/precision";
 import { logger } from "@/lib/logger";
 
 function formatQuery(query: GeocodeQuery): string {
@@ -35,6 +36,9 @@ export class NominatimGeocodingProvider implements GeocodingProvider {
     const data = (await response.json()) as Array<{
       lat: string;
       lon: string;
+      addresstype?: string;
+      category?: string;
+      type?: string;
       address?: { city?: string; town?: string; village?: string; state?: string };
     }>;
 
@@ -48,6 +52,12 @@ export class NominatimGeocodingProvider implements GeocodingProvider {
       lng: Number(result.lon),
       city: result.address?.city ?? result.address?.town ?? result.address?.village,
       state: result.address?.state === "Florida" ? "FL" : result.address?.state,
+      precision: mapNominatimPrecision({
+        addresstype: result.addresstype,
+        category: result.category,
+        type: result.type,
+        hasStreetLine: Boolean(query.addressLine),
+      }),
     };
   }
 }

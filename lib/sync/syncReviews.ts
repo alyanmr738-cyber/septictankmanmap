@@ -1,8 +1,6 @@
-import { findCandidates } from "@/lib/matching/findCandidates";
-import { searchContacts } from "@/lib/integrations/ghl/searchContacts";
-import { getCustomerActivitySignals } from "@/lib/integrations/ghl/activitySignals";
 import { listReviews as listGoogleReviews } from "@/lib/integrations/google-reviews/listReviews";
 import { toPublicReviewerName } from "@/lib/privacy/publicReviewerName";
+import { runReviewMatching } from "@/lib/reviews/runReviewMatching";
 import {
   createReviewId,
   getReviewByGoogleId,
@@ -11,7 +9,7 @@ import {
 } from "@/lib/database/reviews";
 import { logger } from "@/lib/logger";
 import { isMockMode } from "@/lib/env";
-import type { CustomerActivitySignals, ReviewRecord } from "@/lib/types";
+import type { ReviewRecord } from "@/lib/types";
 
 export async function syncReviews(): Promise<{
   fetched: number;
@@ -49,17 +47,7 @@ export async function syncReviews(): Promise<{
       continue;
     }
 
-    const contacts = await searchContacts(googleReview.reviewerDisplayName);
-    const signalsByContactId: Record<string, CustomerActivitySignals> = {};
-    for (const contact of contacts) {
-      signalsByContactId[contact.id] = await getCustomerActivitySignals(contact.id);
-    }
-
-    const match = findCandidates({
-      review: googleReview,
-      contacts,
-      signalsByContactId,
-    });
+    const match = await runReviewMatching(googleReview);
 
     const review: ReviewRecord = {
       id: existing?.id ?? createReviewId(),

@@ -3,7 +3,6 @@ export type Coordinates = {
   lng: number;
 };
 
-const GRID_KM = 1.6;
 const KM_PER_DEGREE_LAT = 111.32;
 
 function hashString(value: string): number {
@@ -28,9 +27,39 @@ function round6(value: number): number {
   return Math.round(value * 1_000_000) / 1_000_000;
 }
 
+const DEFAULT_MIN_OFFSET_METERS = 250;
+const DEFAULT_MAX_OFFSET_METERS = 300;
+
+export function getPublicLocationMinOffsetMeters(): number {
+  const raw = process.env.PUBLIC_LOCATION_MIN_OFFSET_METERS;
+  const parsed = raw ? Number.parseInt(raw, 10) : DEFAULT_MIN_OFFSET_METERS;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MIN_OFFSET_METERS;
+}
+
+export function getPublicLocationMaxOffsetMeters(): number {
+  const raw = process.env.PUBLIC_LOCATION_MAX_OFFSET_METERS;
+  const parsed = raw ? Number.parseInt(raw, 10) : DEFAULT_MAX_OFFSET_METERS;
+  const max = Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_OFFSET_METERS;
+  return Math.max(max, getPublicLocationMinOffsetMeters());
+}
+
+export function displacementMeters(
+  from: Coordinates,
+  to: Coordinates,
+): number {
+  const toRad = (value: number) => (value * Math.PI) / 180;
+  const earthRadius = 6_371_000;
+  const dLat = toRad(to.lat - from.lat);
+  const dLng = toRad(to.lng - from.lng);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(from.lat)) * Math.cos(toRad(to.lat)) * Math.sin(dLng / 2) ** 2;
+  return earthRadius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 /**
- * Converts exact geocoded coordinates into a stable, privacy-safe
- * approximate location. The same record id always maps to the same pin.
+ * Converts private geocoded coordinates into a stable, privacy-safe public point.
+ * Uses a deterministic bearing/distance derived from the stable review id.
  */
 export function anonymizeCoordinates(
   lat: number,
@@ -44,27 +73,24 @@ export function anonymizeCoordinates(
     throw new Error("A stable record identifier is required for privacy transformation");
   }
 
-  const latGrid = GRID_KM / KM_PER_DEGREE_LAT;
-  const lngGrid = GRID_KM / (KM_PER_DEGREE_LAT * Math.max(0.2, Math.cos((lat * Math.PI) / 180)));
-
-  const snappedLat = Math.round(lat / latGrid) * latGrid;
-  const snappedLng = Math.round(lng / lngGrid) * lngGrid;
-
+  const minOffset = getPublicLocationMinOffsetMeters();
+  const maxOffset = getPublicLocationMaxOffsetMeters();
   const hash = hashString(stableId);
-  const jitterLat = ((hash % 1000) / 1000 - 0.5) * latGrid * 0.55;
-  const jitterLng = ((((hash / 1000) >>> 0) % 1000) / 1000 - 0.5) * lngGrid * 0.55;
+  const distanceHash = hashString(`${stableId}:distance`);
+  const distanceMeters =
+    minOffset + ((distanceHash % 10_000) / 10_000) * (maxOffset - minOffset);
+  const bearingRadians = ((hash % 360) * Math.PI) / 180;
+  const latRadians = (lat * Math.PI) / 180;
+  const metersPerDegreeLat = KM_PER_DEGREE_LAT * 1000;
+  const metersPerDegreeLng =
+    metersPerDegreeLat * Math.max(0.2, Math.cos(latRadians));
 
-  let publicLat = snappedLat + jitterLat;
-  let publicLng = snappedLng + jitterLng;
-
-  if (publicLat === lat && publicLng === lng) {
-    publicLat += latGrid * 0.18;
-    publicLng += lngGrid * 0.12;
-  }
+  const deltaLat = (distanceMeters * Math.cos(bearingRadians)) / metersPerDegreeLat;
+  const deltaLng = (distanceMeters * Math.sin(bearingRadians)) / metersPerDegreeLng;
 
   return {
-    lat: round6(clampLatitude(publicLat)),
-    lng: round6(wrapLongitude(publicLng)),
+    lat: round6(clampLatitude(lat + deltaLat)),
+    lng: round6(wrapLongitude(lng + deltaLng)),
   };
 }
 
