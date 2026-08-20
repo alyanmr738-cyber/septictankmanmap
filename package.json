@@ -14,6 +14,8 @@
     "ghl:data-quality": "tsx scripts/ghl-data-quality.ts",
     "seed:first-pin": "tsx scripts/seed-first-real-pin.ts",
     "import:phase1": "tsx scripts/import-phase1-batch.ts",
+    "import:launch": "tsx scripts/generate-launch-csv.ts && tsx scripts/import-launch-reviews.ts",
+    "generate:launch-csv": "tsx scripts/generate-launch-csv.ts",
     "rematch:unmatched": "tsx scripts/rematch-unmatched.ts"
   },
   "dependencies": {

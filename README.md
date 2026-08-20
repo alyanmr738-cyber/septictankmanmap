@@ -94,6 +94,31 @@ Monika Wooten,5,"I needed an inspection done...",2026-08-18,google_manual
 
 Download the starter file at `/phase1-google-reviews.csv` (14 full-name reviews). Each row runs GHL matching and lands in pending, needs review, or unmatched — never directly on the map.
 
+### Launch import (public map — no GHL required)
+
+For public launch, publish all Google reviews rated **4★ or 5★** directly to the map without waiting for CRM matching:
+
+```
+Google reviews (rating >= 4)
+  → launch import
+  → service-area pin assignment
+  → approved on map
+```
+
+Use `/admin/reviews/import-launch` or:
+
+```bash
+npm run generate:launch-csv   # writes public/launch-google-reviews.csv (~95 reviews)
+npm run import:launch         # publishes to map with service_area_estimate pins
+```
+
+Each review gets an internal `location_source`:
+
+- `service_area_estimate` — pin distributed across configured coverage areas (Sarasota, Bradenton, Port Charlotte, Venice, North Port, Punta Gorda). Never a customer home address.
+- `ghl_verified` — optional later enrichment when a high-confidence GHL match exists (enable **Try GHL enrichment** on import, or approve via the CRM workflow).
+
+GHL matching remains available as an enhancement layer: verified locations can replace estimated service-area pins without rebuilding the map.
+
 ### GHL discovery diagnostics
 
 Review matching now tries multiple GHL search strategies, scans all location contacts when API search fails, and scores matches across `firstName`, `lastName`, `name`, `companyName`, and name-like custom fields.

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import { revalidateMapPaths } from "@/lib/cache/revalidateMap";
 import { getGeocodingConfig } from "@/lib/env";
 import { getContact } from "@/lib/integrations/ghl/getContact";
 import { geocodeCustomerLocation } from "@/lib/integrations/geocoding/client";
@@ -83,6 +83,7 @@ export async function approveReview(reviewId: string, ghlContactId?: string) {
       ...(review.matchMetadata ?? {}),
       selectedGhlContactId: selectedId,
       autoMatchLocked: true,
+      locationSource: "ghl_verified",
       geocodingProvider: geocodingConfig.provider,
       geocodePrecision: geocoded.precision ?? "city",
       privacyDisplacementMeters: privacyReport.displacementMeters,
@@ -95,8 +96,7 @@ export async function approveReview(reviewId: string, ghlContactId?: string) {
     ...formatGeocodePrivacyLog(privacyReport),
   });
 
-  revalidatePath("/map");
-  revalidatePath("/api/map");
+  revalidateMapPaths();
 
   return NextResponse.json({ ok: true, privacy: formatGeocodePrivacyLog(privacyReport) });
 }
@@ -118,8 +118,7 @@ export async function rejectReview(reviewId: string) {
     updatedAt: now,
   });
 
-  revalidatePath("/map");
-  revalidatePath("/api/map");
+  revalidateMapPaths();
   return NextResponse.json({ ok: true });
 }
 

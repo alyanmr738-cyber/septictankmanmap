@@ -19,6 +19,8 @@ export default function AdminImportReviewPage() {
           <Link href="/admin?status=pending">← Back to admin queues</Link>
           {" · "}
           <Link href="/admin/reviews/import-csv">Batch CSV import</Link>
+          {" · "}
+          <Link href="/admin/reviews/import-launch">Launch import (map)</Link>
         </p>
         <ImportReviewForm />
       </main>

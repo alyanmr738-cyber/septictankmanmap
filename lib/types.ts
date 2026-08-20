@@ -9,6 +9,8 @@ export const MATCH_STATUSES = [
 
 export type MatchStatus = (typeof MATCH_STATUSES)[number];
 
+export type LocationSource = "ghl_verified" | "service_area_estimate";
+
 export type GoogleStarRating =
   | "STAR_RATING_UNSPECIFIED"
   | "ONE"
@@ -103,6 +105,9 @@ export type MatchMetadata = {
   privacyDisplacementMeters?: number;
   addressSource?: string;
   discoveryDiagnostics?: MatchDiscoveryDiagnostics;
+  locationSource?: LocationSource;
+  launchPublish?: boolean;
+  serviceAreaId?: string;
 };
 
 export type ReviewRecord = {
