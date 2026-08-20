@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { getGeocodingConfig } from "@/lib/env";
 import { getContact } from "@/lib/integrations/ghl/getContact";
 import { geocodeCustomerLocation } from "@/lib/integrations/geocoding/client";
 import { anonymizeCoordinates } from "@/lib/privacy/anonymizeCoordinates";
+import {
+  createGeocodePrivacyReport,
+  formatGeocodePrivacyLog,
+} from "@/lib/privacy/geocodePrivacyReport";
 import { toPublicReviewerName } from "@/lib/privacy/publicReviewerName";
 import { getReviewById, listCandidates, upsertReview } from "@/lib/database/reviews";
 import { logger } from "@/lib/logger";
@@ -44,6 +49,13 @@ export async function approveReview(reviewId: string, ghlContactId?: string) {
   }
 
   const approximate = anonymizeCoordinates(geocoded.lat, geocoded.lng, review.id);
+  const privacyReport = createGeocodePrivacyReport({
+    geocoded,
+    approximate,
+    publicCity: geocoded.city ?? city,
+    publicState: geocoded.state ?? state,
+  });
+  const geocodingConfig = getGeocodingConfig();
   const now = new Date().toISOString();
 
   await upsertReview({
@@ -61,20 +73,22 @@ export async function approveReview(reviewId: string, ghlContactId?: string) {
       ...(review.matchMetadata ?? {}),
       selectedGhlContactId: selectedId,
       autoMatchLocked: true,
-      geocodePrecision: geocoded.precision,
+      geocodingProvider: geocodingConfig.provider,
+      geocodePrecision: geocoded.precision ?? "city",
+      privacyDisplacementMeters: privacyReport.displacementMeters,
     },
     updatedAt: now,
   });
 
   logger.info("Review approved for public map", {
     reviewId: review.id,
-    city: geocoded.city ?? city,
+    ...formatGeocodePrivacyLog(privacyReport),
   });
 
   revalidatePath("/map");
   revalidatePath("/api/map");
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, privacy: formatGeocodePrivacyLog(privacyReport) });
 }
 
 export async function rejectReview(reviewId: string) {

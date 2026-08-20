@@ -1,4 +1,4 @@
-import { isMockMode } from "@/lib/env";
+import { useMockGhlData } from "@/lib/env";
 import { getMockGhlContact } from "@/lib/integrations/ghl/mockContacts";
 import { getContact } from "@/lib/integrations/ghl/getContact";
 import type { CustomerActivitySignals, GhlContact } from "@/lib/types";
@@ -10,7 +10,7 @@ import type { CustomerActivitySignals, GhlContact } from "@/lib/types";
 export async function getCustomerActivitySignals(
   contactId: string,
 ): Promise<CustomerActivitySignals> {
-  if (isMockMode()) {
+  if (useMockGhlData()) {
     const mock = getMockGhlContact(contactId) as (GhlContact & CustomerActivitySignals) | null;
     return {
       lastCustomerActivity: mock?.lastActivity ?? null,

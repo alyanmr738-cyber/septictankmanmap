@@ -65,4 +65,8 @@ export const memoryStore = {
       reasons: candidate.matchReasons,
     }));
   },
+  deleteReview(id: string) {
+    candidates.delete(id);
+    reviews.delete(id);
+  },
 };

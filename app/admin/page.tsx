@@ -1,3 +1,4 @@
+import { ImportReviewForm } from "@/components/admin/ImportReviewForm";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { ReviewCard } from "@/components/admin/ReviewCard";
 import { StatusTabs } from "@/components/admin/StatusTabs";
@@ -32,6 +33,7 @@ export default async function AdminPage({
         </p>
       ) : null}
       <main className="stm-admin-main">
+        <ImportReviewForm />
         <StatusTabs active={active} />
         {reviews.length === 0 ? (
           <p className="stm-admin-copy">No reviews in this queue.</p>

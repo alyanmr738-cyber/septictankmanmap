@@ -276,3 +276,18 @@ export async function listCandidates(reviewId: string): Promise<MatchCandidate[]
     reasons: candidate.matchReasons,
   }));
 }
+
+export async function deleteReviewById(id: string): Promise<void> {
+  if (useMemory()) {
+    memoryStore.deleteReview(id);
+    return;
+  }
+
+  const sql = getSql();
+  if (!sql) {
+    throw new Error("Database is not configured");
+  }
+
+  await sql`DELETE FROM review_match_candidates WHERE review_id = ${id}`;
+  await sql`DELETE FROM reviews WHERE id = ${id}`;
+}

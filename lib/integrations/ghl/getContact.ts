@@ -1,4 +1,4 @@
-import { isMockMode } from "@/lib/env";
+import { useMockGhlData } from "@/lib/env";
 import { ghlFetch, requireGhlConfig } from "@/lib/integrations/ghl/client";
 import { getMockGhlContact } from "@/lib/integrations/ghl/mockContacts";
 import type { GhlApiContact } from "@/lib/integrations/ghl/types";
@@ -6,7 +6,7 @@ import type { GhlContact } from "@/lib/types";
 import { logger } from "@/lib/logger";
 
 export async function getContact(contactId: string): Promise<GhlContact | null> {
-  if (isMockMode()) {
+  if (useMockGhlData()) {
     return getMockGhlContact(contactId);
   }
 

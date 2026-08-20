@@ -75,6 +75,16 @@ npm run ghl:diagnostic -- "First Last" "Another Name"
 
 When `DATABASE_URL` is set, `/admin` approvals persist in Postgres instead of the in-memory seed store. Set `MOCK_MODE=false` once you are ready to stop showing demo pins on `/map`.
 
+For real approvals while keeping the map preview header, set `GEOCODING_PROVIDER=nominatim` or `google` (with `GEOCODING_API_KEY`). Live GHL credentials are used automatically when configured, even in mock mode.
+
+### Manual real-review import (before Google OAuth)
+
+Use `/admin` → **Import Real Google Review** to enter one verified Google review manually. This uses the same workflow as automated sync:
+
+`manual review → GHL search → confidence scoring → admin approval → geocode → anonymize → Supabase → /api/map`
+
+The import form accepts reviewer name, rating, text, date, and optional Google review ID. It can remove pipeline placeholder records for the same reviewer automatically.
+
 This app does not store emails, phones, or full street addresses. GHL contact IDs stay in the private `reviews` table and are never returned by `/api/map`.
 
 ## Vercel deployment

@@ -1,4 +1,4 @@
-import { getGhlConfig, isMockMode } from "@/lib/env";
+import { getGhlConfig, useMockGhlData } from "@/lib/env";
 
 export const GHL_API_BASE = "https://services.leadconnectorhq.com";
 export const GHL_API_VERSION = "2021-07-28";
@@ -20,7 +20,7 @@ export function getGhlHeaders(token: string): HeadersInit {
 }
 
 export function requireGhlConfig() {
-  if (isMockMode()) {
+  if (useMockGhlData()) {
     return null;
   }
   const config = getGhlConfig();

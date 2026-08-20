@@ -78,6 +78,12 @@ export type MatchMetadata = {
   selectedGhlContactId?: string | null;
   autoMatchLocked?: boolean;
   notes?: string;
+  pipelineTest?: boolean;
+  manualImport?: boolean;
+  geocodingProvider?: string;
+  geocodePrecision?: "street" | "postal" | "city";
+  privacyDisplacementMeters?: number;
+  addressSource?: string;
 };
 
 export type ReviewRecord = {

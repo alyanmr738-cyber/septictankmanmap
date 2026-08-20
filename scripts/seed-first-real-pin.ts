@@ -8,6 +8,10 @@ import {
 } from "@/lib/integrations/ghl/inspectContactAddress";
 import { NominatimGeocodingProvider } from "@/lib/integrations/geocoding/providers/nominatim";
 import { anonymizeCoordinates } from "@/lib/privacy/anonymizeCoordinates";
+import {
+  createGeocodePrivacyReport,
+  formatGeocodePrivacyLog,
+} from "@/lib/privacy/geocodePrivacyReport";
 import { toPublicReviewerName } from "@/lib/privacy/publicReviewerName";
 import type { GhlSearchContactsResponse } from "@/lib/integrations/ghl/types";
 import type { ReviewRecord } from "@/lib/types";
@@ -16,17 +20,6 @@ import { loadEnvLocal } from "./load-env";
 loadEnvLocal();
 
 const CUSTOMER_NAME = "John Drier";
-
-function haversineMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const toRad = (value: number) => (value * Math.PI) / 180;
-  const earthRadius = 6_371_000;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return earthRadius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
 
 function readString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -159,7 +152,12 @@ async function main() {
 
   const reviewId = randomUUID();
   const approximate = anonymizeCoordinates(geocoded.lat, geocoded.lng, reviewId);
-  const distanceMeters = Math.round(haversineMeters(geocoded.lat, geocoded.lng, approximate.lat, approximate.lng));
+  const privacyReport = createGeocodePrivacyReport({
+    geocoded: { ...geocoded, precision: geocodePrecision },
+    approximate,
+    publicCity: geocoded.city ?? address.city ?? "",
+    publicState: geocoded.state ?? address.state ?? "FL",
+  });
   const now = new Date().toISOString();
 
   const review: ReviewRecord = {
@@ -211,20 +209,17 @@ async function main() {
         hasStreetLine: address.hasStreetLine,
         geocodingProvider: "nominatim",
         geocodePrecision,
-        exactPrivatePoint: {
-          lat: geocoded.lat,
-          lng: geocoded.lng,
-        },
-        anonymizedPublicPoint: {
+        privacy: formatGeocodePrivacyLog(privacyReport),
+        publicPin: {
           lat: approximate.lat,
           lng: approximate.lng,
         },
-        offsetMeters: distanceMeters,
         reviewId,
         publicReviewerName: review.publicReviewerName,
         mapPublished: Boolean(published),
         totalApprovedPinsOnMap: mapData.reviewCount,
-        note: "Exact coordinates are shown here for verification only - only anonymized coordinates are stored in Supabase.",
+        note:
+          "Pipeline verification only. Geocoder result is not treated as a confirmed residence. Import a real Google review through /admin and approve through the normal workflow.",
       },
       null,
       2,

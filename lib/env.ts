@@ -58,8 +58,12 @@ export function getGhlConfig(): {
   return { token, locationId };
 }
 
+export function useMockGhlData(): boolean {
+  return isMockMode() && !getGhlConfig();
+}
+
 export function isGhlConfigured(): boolean {
-  return getGhlConfig() !== null && !isMockMode();
+  return getGhlConfig() !== null && !useMockGhlData();
 }
 
 export function getGoogleBusinessConfig(): {
@@ -102,18 +106,25 @@ export function getGeocodingConfig(): {
   provider: "google" | "mapbox" | "nominatim" | "mock";
   apiKey?: string;
 } {
-  if (isMockMode()) {
-    return { provider: "mock" };
-  }
-
-  const provider = (readOptional(process.env.GEOCODING_PROVIDER) ?? "mock") as
+  const configured = (readOptional(process.env.GEOCODING_PROVIDER) ?? "mock") as
     | "google"
     | "mapbox"
     | "nominatim"
     | "mock";
 
+  if (configured !== "mock") {
+    return {
+      provider: configured,
+      apiKey: readOptional(process.env.GEOCODING_API_KEY),
+    };
+  }
+
+  if (isMockMode()) {
+    return { provider: "mock" };
+  }
+
   return {
-    provider,
+    provider: configured,
     apiKey: readOptional(process.env.GEOCODING_API_KEY),
   };
 }
